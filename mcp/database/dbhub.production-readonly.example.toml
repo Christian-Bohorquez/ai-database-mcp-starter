@@ -1,0 +1,21 @@
+# DBHub production read-only example.
+# Copy to: mcp/database/dbhub.production-readonly.toml
+# This profile is for schema inspection and SELECT queries only.
+# IMPORTANT: the real database account used here must also be read-only at DB level.
+
+[[sources]]
+id = "production_mysql_readonly"
+dsn = "mysql://${PROD_DB_READONLY_USER}:${PROD_DB_READONLY_PASSWORD}@${PROD_DB_HOST}:${PROD_DB_PORT}/${PROD_DB_NAME}"
+connection_timeout = 15
+query_timeout = 30
+lazy = true
+
+[[tools]]
+name = "execute_sql"
+source = "production_mysql_readonly"
+readonly = true
+max_rows = 100
+
+[[tools]]
+name = "search_objects"
+source = "production_mysql_readonly"

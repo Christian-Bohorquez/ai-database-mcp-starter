@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "dbhub": {
+      "command": "npx",
+      "args": [
+        "@bytebase/dbhub@latest",
+        "--transport",
+        "stdio",
+        "--config",
+        "mcp/database/dbhub.local.toml"
+      ]
+    }
+  }
+}

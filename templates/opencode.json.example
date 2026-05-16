@@ -1,0 +1,17 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "dbhub": {
+      "type": "local",
+      "command": [
+        "npx",
+        "@bytebase/dbhub@latest",
+        "--transport",
+        "stdio",
+        "--config",
+        "mcp/database/dbhub.local.toml"
+      ],
+      "enabled": true
+    }
+  }
+}

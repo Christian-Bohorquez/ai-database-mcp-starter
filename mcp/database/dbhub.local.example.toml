@@ -1,0 +1,58 @@
+# DBHub local/development example configuration.
+# Copy to: mcp/database/dbhub.local.toml
+# Use only local or non-production databases here.
+# Local write operations are allowed only with explicit user authorization.
+
+[[sources]]
+id = "local_postgres"
+dsn = "postgres://${LOCAL_POSTGRES_USER}:${LOCAL_POSTGRES_PASSWORD}@${LOCAL_POSTGRES_HOST}:${LOCAL_POSTGRES_PORT}/${LOCAL_POSTGRES_DB}"
+search_path = "public"
+connection_timeout = 10
+query_timeout = 30
+lazy = false
+
+[[sources]]
+id = "local_mysql"
+dsn = "mysql://${LOCAL_MYSQL_USER}:${LOCAL_MYSQL_PASSWORD}@${LOCAL_MYSQL_HOST}:${LOCAL_MYSQL_PORT}/${LOCAL_MYSQL_DB}"
+connection_timeout = 10
+query_timeout = 30
+lazy = false
+
+# MariaDB is typically compatible with the MySQL protocol in DBHub setups.
+# Reuse the mysql type unless your DBHub version exposes a dedicated mariadb type.
+[[sources]]
+id = "local_mariadb"
+dsn = "mysql://${LOCAL_MYSQL_USER}:${LOCAL_MYSQL_PASSWORD}@${LOCAL_MYSQL_HOST}:${LOCAL_MYSQL_PORT}/${LOCAL_MYSQL_DB}"
+connection_timeout = 10
+query_timeout = 30
+lazy = false
+
+[[tools]]
+name = "execute_sql"
+source = "local_postgres"
+readonly = false
+max_rows = 300
+
+[[tools]]
+name = "execute_sql"
+source = "local_mysql"
+readonly = false
+max_rows = 300
+
+[[tools]]
+name = "execute_sql"
+source = "local_mariadb"
+readonly = false
+max_rows = 300
+
+[[tools]]
+name = "search_objects"
+source = "local_postgres"
+
+[[tools]]
+name = "search_objects"
+source = "local_mysql"
+
+[[tools]]
+name = "search_objects"
+source = "local_mariadb"

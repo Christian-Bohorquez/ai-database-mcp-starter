@@ -1,0 +1,68 @@
+# Combined DBHub example with multiple environments.
+# Copy to a local, ignored file and adjust as needed.
+# Never commit real hosts, users, or passwords.
+
+########################
+# Sources
+########################
+
+[[sources]]
+id = "local_postgres"
+dsn = "postgres://${LOCAL_POSTGRES_USER}:${LOCAL_POSTGRES_PASSWORD}@${LOCAL_POSTGRES_HOST}:${LOCAL_POSTGRES_PORT}/${LOCAL_POSTGRES_DB}"
+search_path = "public"
+connection_timeout = 10
+query_timeout = 30
+lazy = false
+
+[[sources]]
+id = "local_mysql"
+dsn = "mysql://${LOCAL_MYSQL_USER}:${LOCAL_MYSQL_PASSWORD}@${LOCAL_MYSQL_HOST}:${LOCAL_MYSQL_PORT}/${LOCAL_MYSQL_DB}"
+connection_timeout = 10
+query_timeout = 30
+lazy = false
+
+# Production source for read-only inspection.
+[[sources]]
+id = "production_mysql_readonly"
+dsn = "mysql://${PROD_DB_READONLY_USER}:${PROD_DB_READONLY_PASSWORD}@${PROD_DB_HOST}:${PROD_DB_PORT}/${PROD_DB_NAME}"
+connection_timeout = 15
+query_timeout = 30
+lazy = true
+
+########################
+# SQL Execution Policy
+########################
+
+[[tools]]
+name = "execute_sql"
+source = "local_postgres"
+readonly = false
+max_rows = 300
+
+[[tools]]
+name = "execute_sql"
+source = "local_mysql"
+readonly = false
+max_rows = 300
+
+[[tools]]
+name = "execute_sql"
+source = "production_mysql_readonly"
+readonly = true
+max_rows = 100
+
+########################
+# Object Discovery
+########################
+
+[[tools]]
+name = "search_objects"
+source = "local_postgres"
+
+[[tools]]
+name = "search_objects"
+source = "local_mysql"
+
+[[tools]]
+name = "search_objects"
+source = "production_mysql_readonly"

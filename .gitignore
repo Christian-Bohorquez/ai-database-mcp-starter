@@ -1,0 +1,7 @@
+# Secrets and local runtime files
+.env
+.env.local
+.codex/config.toml
+mcp/database/dbhub.local.toml
+mcp/database/dbhub.production-readonly.toml
+mcp/database/*.secret.toml
