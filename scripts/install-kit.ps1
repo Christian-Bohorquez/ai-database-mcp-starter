@@ -35,6 +35,8 @@ $relativeFiles = @(
     "templates/gitignore-snippet.txt",
     "templates/opencode.json.example",
     "templates/claude-desktop-config.example.json",
+    "scripts/start-dbhub-http.ps1",
+    "scripts/start-dbhub.ps1",
     "scripts/install-kit.ps1"
 )
 

@@ -1,14 +1,9 @@
 {
+  "_note": "Future/verify example for Claude Desktop MCP setup. Confirm client version supports HTTP MCP server URLs.",
   "mcpServers": {
     "dbhub": {
-      "command": "npx",
-      "args": [
-        "@bytebase/dbhub@latest",
-        "--transport",
-        "stdio",
-        "--config",
-        "mcp/database/dbhub.local.toml"
-      ]
+      "url": "http://localhost:5678/mcp",
+      "_requires": "Start scripts/start-dbhub-http.ps1 first"
     }
   }
 }

@@ -1,14 +1,16 @@
 # Project-local Codex MCP configuration example for DBHub.
 # Copy this file to: .codex/config.toml
 # Do not place credentials in this file.
+#
+# Start DBHub first in another terminal:
+#   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-dbhub-http.ps1
+#
+# If Codex IDE does not load project MCP config, add the same block to:
+#   $env:USERPROFILE\.codex\config.toml
 
 [mcp_servers.dbhub]
-command = "npx"
-args = [
-  "-y",
-  "@bytebase/dbhub@latest",
-  "--transport",
-  "stdio",
-  "--config",
-  "mcp/database/dbhub.local.toml",
-]
+url = "http://localhost:5678/mcp"
+startup_timeout_sec = 30
+tool_timeout_sec = 60
+enabled = true
+enabled_tools = ["execute_sql", "search_objects"]

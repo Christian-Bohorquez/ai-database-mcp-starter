@@ -10,6 +10,17 @@ This workflow applies to all MCP-driven SQL operations, with strict production s
 - In production, do not execute write SQL through the agent.
 - In production DBHub templates, `execute_sql` must be configured with `readonly = true`.
 
+## Readonly Validation Snapshot
+
+A successful starter workflow validation should confirm:
+
+- MCP loads with `execute_sql` and `search_objects` available.
+- Database context queries and metadata queries run using `SELECT` only.
+- No write SQL is attempted.
+- Readonly mode stays enabled for production profiles.
+
+Use the `Universal Database MCP Validation Prompt` from `README.md` for repeatable checks.
+
 ## Production Correction Pattern
 
 ### 1) SELECT before (validate current state)

@@ -10,44 +10,34 @@ This guide explains how to reuse this MCP database structure across projects, en
 - Separate local write-capable configs from production read-only configs.
 - Keep official DBHub TOML structure (`[[sources]]` and `[[tools]]`) unchanged across projects.
 
-## Reuse in Thesis Dashboard Projects (PostgreSQL)
+## Reuse in PostgreSQL Projects
 
-- Use `local_postgres` source as primary development source.
+- Use `local_postgres` as primary development source.
 - Keep the same safe SQL workflow and read-before-write discipline.
-- Add project-specific schema exploration prompts, not project-specific security exceptions.
 
-## Reuse in Business Systems (MySQL/MariaDB)
+## Reuse in MySQL/MariaDB Projects
 
-- Use `local_mysql` for development and `production_mysql_readonly` for production inspection.
-- Treat MariaDB as MySQL-compatible unless your DBHub version requires another type.
-- Keep production read-only enforcement in both tool config and DB permissions.
+- Use `local_mysql` and/or `local_mariadb` for development.
+- Use `production_mysql_readonly` for production inspection.
+- Keep production read-only enforcement in both DBHub tool config and DB permissions.
 
-## Reuse in Any Language or Framework
+## Client Portability
 
-This structure is independent from backend/frontend stacks because it isolates:
+- Codex is the primary workflow for this starter.
+- OpenCode is optional/future and can reuse the same DBHub HTTP endpoint once configured.
+- Claude Desktop is a future client option and should be verified before production use.
 
-- MCP server wiring (`.codex/config.toml` pattern)
-- DB source definitions (`mcp/database/*.toml`)
-- Tool restrictions and exposure (`readonly`, `max_rows`, explicit `search_objects`)
-- Operational policy (`docs/*.md`)
-- Agent behavior contracts (`agents/*.md`, `skills/database-safe-sql/SKILL.md`)
+## Final Recommendation
 
-Whether the app is FastAPI, Spring, Laravel, Node, or .NET, the MCP layer remains valid.
+- Codex + Windows: prefer local HTTP DBHub launcher (`scripts/start-dbhub-http.ps1`) and endpoint `http://localhost:5678/mcp`.
+- OpenCode: can reuse the same endpoint or equivalent local MCP wiring later.
+- Claude Desktop: may point to the same DBHub server once compatibility is verified.
 
-## Codex-first Workflow
+## Governance Consistency
 
-- Codex uses project-local MCP config examples.
-- Agent roles and skill prompts enforce safe SQL handling.
-- Production updates remain human-approved and manually executed.
+Across clients, keep these constants:
 
-## OpenCode as Secondary Tool
-
-- OpenCode can consume the same DBHub configuration model and policy files.
-- Keep IDs, variable names, and workflow wording stable to avoid behavioral divergence.
-- No MCP logic rewrite is required; only client integration changes.
-
-## Claude Desktop as Future Client
-
-- If Claude Desktop is added later, keep DBHub as shared MCP server baseline.
-- Reuse the same source IDs and safety rules.
-- Preserve the same production manual-write process to keep governance consistent across clients.
+- Same source IDs and naming conventions.
+- Same `readonly` production constraints.
+- Same manual write workflow for production corrections.
+- Same validation baseline via the Universal Database MCP Validation Prompt.

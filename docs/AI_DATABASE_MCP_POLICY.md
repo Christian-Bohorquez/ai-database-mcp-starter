@@ -9,7 +9,8 @@ This policy governs how agents use MCP database tools in this project.
 ### Local/Development
 
 - MCP may read and write only with explicit user authorization.
-- Default agent behavior should still begin with read/inspection queries.
+- Default behavior starts with schema discovery and safe `SELECT` queries.
+- For Windows + Codex, prefer DBHub HTTP local transport.
 
 ### Production
 
@@ -37,14 +38,12 @@ For production data corrections:
   - `mcp_prod_ro`
 - The production account must be read-only at the database permission level.
 
-## Data Handling and Safety
+## Validation Standard
 
-- Never assume catalog/domain values; verify with `SELECT`.
-- Use `LIMIT` in exploratory queries.
-- Avoid broad/unsafe `WHERE` clauses in suggested writes.
-- Avoid exposing sensitive data in query results or logs.
+- Use the `Universal Database MCP Validation Prompt` in `README.md` to validate MCP availability and safe SQL behavior.
+- Validation must avoid row-level sensitive data and avoid `SELECT *` on large/sensitive tables.
 
 ## Secret Storage
 
 - Store credentials only in environment variables or local ignored files.
-- Never commit credentials, tokens, real hosts, or passwords to the repository.
+- Never commit credentials, tokens, real hosts, or passwords.

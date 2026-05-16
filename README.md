@@ -1,58 +1,166 @@
-# AI Database MCP Starter (Private)
+# AI Database MCP Starter Kit
 
-Reusable private starter kit for portable database MCP integration across projects.
+## Purpose
 
-## What This Starter Provides
+This repository is a reusable private starter kit for connecting AI development tools to databases through MCP, using DBHub as the initial database MCP server.
 
-- Codex-first workflow (primary).
-- OpenCode-ready example configuration (secondary workflow).
-- Claude Desktop MCP example configuration (future client option).
-- DBHub as initial MCP database server.
-- Templates for PostgreSQL, MySQL, and MariaDB-compatible workflows.
-- Safe local-vs-production policy and SQL workflow documentation.
+Supported usage:
 
-## Safety Model
+- Codex primary workflow.
+- OpenCode optional/future workflow.
+- Claude Desktop possible future client.
+- PostgreSQL local/development.
+- MySQL/MariaDB local/development.
+- MySQL/MariaDB production read-only.
 
-- Local/development databases:
-  - Read queries are allowed.
-  - Write operations are allowed only with explicit user authorization.
-- Production databases:
-  - Read-only usage only (`SELECT`, schema discovery).
-  - Agent never executes write SQL in production.
-  - Real production database user must also be read-only.
+## Universal Database MCP Validation Prompt
 
-## Human-in-the-Loop SQL Workflow
+Use this prompt in Codex, OpenCode, Claude, or another MCP-capable client:
 
-1. `SELECT` before (validate current state).
-2. Suggested manual `UPDATE`/`INSERT`/`DELETE` script (human executes outside MCP).
-3. `SELECT` after (validate final state).
+```text
+Validate database MCP connectivity in read-only mode.
 
-## Included Structure
+Safety rules:
+- Do not print secrets.
+- Do not print .env or .env.local contents.
+- Do not run INSERT, UPDATE, DELETE, ALTER, DROP, CREATE, TRUNCATE, GRANT, or REVOKE.
+- Run SELECT queries only.
+- Do not use SELECT * on large or sensitive tables.
+- Do not query row-level sensitive data.
+- Keep readonly mode unchanged.
 
-- `.codex/config.toml.example`
-- `mcp/database/*` templates
-- `agents/*` role definitions
-- `skills/database-safe-sql/SKILL.md`
-- `docs/*` policy and workflow guides
-- `.env.example`
-- `templates/` examples for OpenCode and Claude Desktop
-- `scripts/install-kit.ps1` installer
+Tasks:
+1. Confirm the database MCP server is loaded.
+2. List available MCP tools.
+3. If search_objects is available, run schema/object discovery first.
+4. Detect the configured source/engine and choose the correct query set:
 
-## Quick Use
+PostgreSQL validation queries:
+SELECT current_database();
+SELECT current_schema();
+SELECT table_schema, table_name
+FROM information_schema.tables
+WHERE table_schema NOT IN ('pg_catalog', 'information_schema')
+ORDER BY table_schema, table_name
+LIMIT 30;
 
-1. Copy this starter into a target project.
-2. Add required ignore rules from `.gitignore` or `templates/gitignore-snippet.txt`.
-3. Copy examples into local runtime files:
-   - `.codex/config.toml.example` -> `.codex/config.toml`
-   - `mcp/database/dbhub.local.example.toml` -> `mcp/database/dbhub.local.toml`
-4. Fill credentials only through environment variables/local ignored files.
-5. Keep production integration read-only.
+MySQL/MariaDB validation queries:
+SELECT DATABASE();
+SELECT table_schema, table_name
+FROM information_schema.tables
+WHERE table_schema NOT IN ('information_schema', 'mysql', 'performance_schema', 'sys')
+ORDER BY table_schema, table_name
+LIMIT 30;
 
-## Never Commit
+5. If tables are found, choose one non-sensitive table and inspect columns only:
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_schema = '<schema>'
+  AND table_name = '<table>'
+ORDER BY ordinal_position;
 
-- `.env`
-- `.env.local`
-- `.codex/config.toml`
-- `mcp/database/dbhub.local.toml`
-- `mcp/database/dbhub.production-readonly.toml`
-- `mcp/database/*.secret.toml`
+Final report must include:
+- MCP loaded successfully or not
+- available tools
+- database engine if known
+- current database/schema
+- sample discovered tables
+- sample columns
+- readonly status
+- whether any write SQL was attempted
+- errors
+```
+
+## DBHub
+
+DBHub is the database MCP server used by this starter. It gives Codex/OpenCode/Claude a controlled way to inspect schemas and execute safe read-only SQL.
+
+Recommended workflow for Windows + Codex is local HTTP transport.
+
+Start DBHub from project root:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-dbhub-http.ps1
+```
+
+Operational notes:
+
+- Run from the project root.
+- Do not close that PowerShell window while using MCP.
+- Expected endpoint: `http://localhost:5678/mcp`.
+- That terminal must stay open because it hosts the running DBHub MCP server.
+
+## Codex
+
+Codex must point to the local DBHub HTTP endpoint.
+
+In some cases, project-local `.codex/config.toml` is not enough. If Codex IDE does not load project MCP settings, update global Codex config manually:
+
+```powershell
+notepad $env:USERPROFILE\.codex\config.toml
+```
+
+Use this MCP block:
+
+```toml
+[mcp_servers.dbhub]
+url = "http://localhost:5678/mcp"
+startup_timeout_sec = 30
+tool_timeout_sec = 60
+enabled = true
+enabled_tools = ["execute_sql", "search_objects"]
+```
+
+Checklist:
+
+- Keep DBHub HTTP running before opening/restarting Codex.
+- Restart Codex after config changes.
+- Run `/mcp` in Codex and verify `dbhub` appears.
+- If `dbhub` appears, run the Universal Database MCP Validation Prompt.
+- If `dbhub` does not appear, verify:
+  - DBHub terminal is still running.
+  - Endpoint is `http://localhost:5678/mcp`.
+  - Global Codex config includes the `dbhub` URL block.
+  - Project is trusted.
+  - Codex was restarted after config changes.
+
+## Troubleshooting
+
+- `codex is not recognized`:
+  - Codex CLI is not installed in PATH. Use Codex IDE settings/global config manually.
+- `/mcp does not show dbhub`:
+  - Codex has not loaded MCP. Check global config and restart Codex.
+- `timed out handshaking with MCP server`:
+  - STDIO startup may be failing. Prefer HTTP local transport on Windows.
+- `connection closed: initialize response`:
+  - STDIO handshake failed. Prefer HTTP local transport.
+- `getaddrinfo ENOTFOUND ${LOCAL_POSTGRES_HOST}`:
+  - Environment variables were not expanded. Use `scripts/start-dbhub-http.ps1` so `.env` and `.env.local` are loaded into process environment.
+- `better-sqlite3 binding error in demo mode`:
+  - DBHub demo mode uses SQLite and can fail on some Windows/Node versions. This does not necessarily affect PostgreSQL/MySQL/MariaDB validation.
+- `DBHub server terminal closed`:
+  - Restart `scripts/start-dbhub-http.ps1` before using Codex.
+
+## OpenCode
+
+OpenCode setup is optional/future in this starter.
+
+- The same DBHub HTTP endpoint can likely be reused once OpenCode MCP client configuration is in place.
+- This flow has not been validated in this repository environment yet.
+- DBHub HTTP must be running first.
+- See `templates/opencode.json.example` for a conservative example configuration.
+
+## Security Rules
+
+- Never commit `.env`, `.env.local`, `.codex/config.toml`, `mcp/database/dbhub.local.toml`, or production runtime configs.
+- Never use root/admin/postgres production credentials.
+- Use separate users:
+  - `mcp_local_rw`
+  - `mcp_local_ro`
+  - `mcp_prod_ro`
+- Production is read-only only.
+- Production workflow:
+  1. SELECT before
+  2. suggested manual UPDATE/INSERT/DELETE
+  3. SELECT after
+- Agent never executes production writes.
