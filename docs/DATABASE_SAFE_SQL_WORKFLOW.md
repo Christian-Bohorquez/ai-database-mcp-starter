@@ -4,10 +4,12 @@ This workflow applies to all MCP-driven SQL operations, with strict production s
 
 ## Core Rules
 
+- When multiple MCP servers are available, explicitly state the selected source/server before generating SQL (for example `dbhub_local` or `dbhub_prod`).
 - Inspect schema first.
 - Verify catalog/reference values with `SELECT` before assuming them.
 - Use `LIMIT` for exploratory reads.
 - In production, do not execute write SQL through the agent.
+- In production, the agent may generate manual write scripts only; execution must be performed by a human outside MCP.
 - In production DBHub templates, `execute_sql` must be configured with `readonly = true`.
 
 ## Readonly Validation Snapshot

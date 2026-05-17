@@ -46,6 +46,14 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-dbhub-http.ps1
 - `dbhub.production-readonly.example.toml`: production read-only example.
 - `dbhub.multi-environment.example.toml`: combined multi-source example.
 
+## Selecting the Active DBHub Config
+
+- The active DBHub config is selected by `scripts/start-dbhub-http.ps1 -Config <path>`.
+- File names do not activate configs automatically.
+- `.example` files are templates only.
+- Runtime files such as `dbhub.local.toml`, `dbhub.mysql.toml`, and `dbhub.production-readonly.toml` can coexist.
+- DBHub uses only the file passed by `-Config`.
+
 ## Never Commit
 
 - `.env`

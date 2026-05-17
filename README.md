@@ -75,7 +75,7 @@ Final report must include:
 
 DBHub is the database MCP server used by this starter. It gives Codex/OpenCode/Claude a controlled way to inspect schemas and execute safe read-only SQL.
 
-Recommended workflow for Windows + Codex is local HTTP transport.
+Recommended workflow for Windows + Codex is local HTTP transport with explicit config and port parameters.
 
 Start DBHub from project root:
 
@@ -90,9 +90,34 @@ Operational notes:
 - Expected endpoint: `http://localhost:5678/mcp`.
 - That terminal must stay open because it hosts the running DBHub MCP server.
 
+## Running Multiple DBHub MCP Servers
+
+You can run local and production-readonly DBHub instances at the same time.
+
+- Use different ports per instance.
+- Use clear names such as `dbhub_local` and `dbhub_prod`.
+- Local may be read/write only when explicitly authorized and configured.
+- Production must always be read-only.
+
+Example commands from project root:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-dbhub-http.ps1 -Config mcp/database/dbhub.local.toml -Port 5678
+```
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-dbhub-http.ps1 -Config mcp/database/dbhub.production-readonly.toml -Port 5679
+```
+
+Operational notes:
+
+- Do not close the PowerShell windows.
+- Each running terminal is one DBHub MCP server.
+- Codex connects to each server through its own URL.
+
 ## Codex
 
-Codex must point to the local DBHub HTTP endpoint.
+Codex must point to the DBHub HTTP endpoints you run.
 
 In some cases, project-local `.codex/config.toml` is not enough. If Codex IDE does not load project MCP settings, update global Codex config manually:
 
@@ -103,8 +128,15 @@ notepad $env:USERPROFILE\.codex\config.toml
 Use this MCP block:
 
 ```toml
-[mcp_servers.dbhub]
+[mcp_servers.dbhub_local]
 url = "http://localhost:5678/mcp"
+startup_timeout_sec = 30
+tool_timeout_sec = 60
+enabled = true
+enabled_tools = ["execute_sql", "search_objects"]
+
+[mcp_servers.dbhub_prod]
+url = "http://localhost:5679/mcp"
 startup_timeout_sec = 30
 tool_timeout_sec = 60
 enabled = true
@@ -113,14 +145,14 @@ enabled_tools = ["execute_sql", "search_objects"]
 
 Checklist:
 
-- Keep DBHub HTTP running before opening/restarting Codex.
+- Keep DBHub HTTP instances running before opening/restarting Codex.
 - Restart Codex after config changes.
-- Run `/mcp` in Codex and verify `dbhub` appears.
-- If `dbhub` appears, run the Universal Database MCP Validation Prompt.
-- If `dbhub` does not appear, verify:
-  - DBHub terminal is still running.
-  - Endpoint is `http://localhost:5678/mcp`.
-  - Global Codex config includes the `dbhub` URL block.
+- Run `/mcp` in Codex and verify `dbhub_local` and/or `dbhub_prod` appear.
+- If an expected server appears, run the Universal Database MCP Validation Prompt.
+- If a server does not appear, verify:
+  - Its DBHub terminal is still running.
+  - Endpoint matches the configured URL, such as `http://localhost:5678/mcp` or `http://localhost:5679/mcp`.
+  - Global Codex config includes the same MCP server block.
   - Project is trusted.
   - Codex was restarted after config changes.
 

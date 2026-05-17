@@ -12,14 +12,28 @@ This guide explains how to reuse this MCP database structure across projects, en
 
 ## Reuse in PostgreSQL Projects
 
-- Use `local_postgres` as primary development source.
+- Use PostgreSQL local/development on port `5678` (or another selected port).
 - Keep the same safe SQL workflow and read-before-write discipline.
 
 ## Reuse in MySQL/MariaDB Projects
 
-- Use `local_mysql` and/or `local_mariadb` for development.
-- Use `production_mysql_readonly` for production inspection.
+- Use MySQL/MariaDB local/development on port `5678` or another selected port.
+- Use production-readonly on a separate port (for example `5679`) for production inspection.
 - Keep production read-only enforcement in both DBHub tool config and DB permissions.
+
+## Multi-Instance Pattern
+
+The same starter can run multiple DBHub HTTP instances at once by changing only `-Config` and `-Port`:
+
+- local PostgreSQL on `5678`
+- local MySQL/MariaDB on `5678` or another local port
+- production-readonly on `5679`
+
+This pattern is reusable in future projects by updating:
+
+- environment values in `.env` and `.env.local`
+- DBHub TOML files under `mcp/database`
+- startup command parameters (`-Config`, `-Port`, optional `-Profile`)
 
 ## Client Portability
 
@@ -29,7 +43,7 @@ This guide explains how to reuse this MCP database structure across projects, en
 
 ## Final Recommendation
 
-- Codex + Windows: prefer local HTTP DBHub launcher (`scripts/start-dbhub-http.ps1`) and endpoint `http://localhost:5678/mcp`.
+- Codex + Windows: prefer local HTTP DBHub launcher (`scripts/start-dbhub-http.ps1`) and explicit ports per instance.
 - OpenCode: can reuse the same endpoint or equivalent local MCP wiring later.
 - Claude Desktop: may point to the same DBHub server once compatibility is verified.
 

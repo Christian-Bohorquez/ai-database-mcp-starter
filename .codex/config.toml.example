@@ -2,14 +2,24 @@
 # Copy this file to: .codex/config.toml
 # Do not place credentials in this file.
 #
-# Start DBHub first in another terminal:
-#   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-dbhub-http.ps1
+# Start local DBHub on 5678 before using dbhub_local.
+#   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-dbhub-http.ps1 -Config mcp/database/dbhub.local.toml -Port 5678 -Profile dbhub_local
 #
-# If Codex IDE does not load project MCP config, add the same block to:
-#   $env:USERPROFILE\.codex\config.toml
+# Start production-readonly DBHub on 5679 before using dbhub_prod.
+#   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-dbhub-http.ps1 -Config mcp/database/dbhub.production-readonly.toml -Port 5679 -Profile dbhub_prod
+#
+# If Codex IDE does not load project MCP config, copy the same block to the global config:
+#   notepad $env:USERPROFILE\.codex\config.toml
 
-[mcp_servers.dbhub]
+[mcp_servers.dbhub_local]
 url = "http://localhost:5678/mcp"
+startup_timeout_sec = 30
+tool_timeout_sec = 60
+enabled = true
+enabled_tools = ["execute_sql", "search_objects"]
+
+[mcp_servers.dbhub_prod]
+url = "http://localhost:5679/mcp"
 startup_timeout_sec = 30
 tool_timeout_sec = 60
 enabled = true

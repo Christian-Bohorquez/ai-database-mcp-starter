@@ -1,5 +1,11 @@
 [CmdletBinding()]
-param()
+param(
+    [string]$Config = "mcp/database/dbhub.local.toml",
+    [ValidateRange(1, 65535)]
+    [int]$Port = 5678,
+    [string]$HostAddress = "localhost",
+    [string]$Profile
+)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
@@ -12,6 +18,19 @@ function Write-Info {
 function Write-ErrorLine {
     param([string]$Message)
     [Console]::Error.WriteLine($Message)
+}
+
+function Resolve-AbsolutePath {
+    param(
+        [string]$Path,
+        [string]$BaseDirectory
+    )
+
+    if ([System.IO.Path]::IsPathRooted($Path)) {
+        return [System.IO.Path]::GetFullPath($Path)
+    }
+
+    return [System.IO.Path]::GetFullPath((Join-Path $BaseDirectory $Path))
 }
 
 function Load-EnvFile {
@@ -52,17 +71,23 @@ function Load-EnvFile {
     }
 }
 
-function Test-EnvGroup {
-    param([string[]]$Names)
+function Get-RequiredVariablesFromToml {
+    param([string]$TomlPath)
 
-    foreach ($name in $Names) {
-        $currentValue = [Environment]::GetEnvironmentVariable($name, "Process")
-        if ([string]::IsNullOrWhiteSpace($currentValue)) {
-            return $false
+    $content = Get-Content -LiteralPath $TomlPath -Raw
+    $regex = [regex]'\$\{([A-Za-z0-9_]+)\}'
+    $found = New-Object "System.Collections.Generic.HashSet[string]" ([System.StringComparer]::Ordinal)
+
+    foreach ($match in $regex.Matches($content)) {
+        $varName = $match.Groups[1].Value
+        if (-not [string]::IsNullOrWhiteSpace($varName)) {
+            [void]$found.Add($varName)
         }
     }
 
-    return $true
+    $result = @($found)
+    [Array]::Sort($result, [System.StringComparer]::Ordinal)
+    return $result
 }
 
 try {
@@ -75,42 +100,49 @@ try {
     Load-EnvFile -EnvFilePath (Join-Path $projectRoot ".env")
     Load-EnvFile -EnvFilePath (Join-Path $projectRoot ".env.local")
 
-    $postgresGroup = @(
-        "LOCAL_POSTGRES_HOST",
-        "LOCAL_POSTGRES_PORT",
-        "LOCAL_POSTGRES_DB",
-        "LOCAL_POSTGRES_USER",
-        "LOCAL_POSTGRES_PASSWORD"
-    )
-
-    $mysqlGroup = @(
-        "LOCAL_MYSQL_HOST",
-        "LOCAL_MYSQL_PORT",
-        "LOCAL_MYSQL_DB",
-        "LOCAL_MYSQL_USER",
-        "LOCAL_MYSQL_PASSWORD"
-    )
-
-    $hasPostgres = Test-EnvGroup -Names $postgresGroup
-    $hasMySql = Test-EnvGroup -Names $mysqlGroup
-
-    if (-not ($hasPostgres -or $hasMySql)) {
-        Write-ErrorLine "Missing required local database environment variables."
-        Write-ErrorLine "Provide a complete LOCAL_POSTGRES_* or LOCAL_MYSQL_* group in .env/.env.local."
+    $resolvedConfigPath = Resolve-AbsolutePath -Path $Config -BaseDirectory $projectRoot
+    if (-not (Test-Path -LiteralPath $resolvedConfigPath -PathType Leaf)) {
+        Write-ErrorLine ("Config file not found: " + $resolvedConfigPath)
         exit 1
     }
 
-    if (-not $hasPostgres) {
-        Write-Info "LOCAL_POSTGRES_* group is incomplete; PostgreSQL source may be unavailable."
-    }
-    if (-not $hasMySql) {
-        Write-Info "LOCAL_MYSQL_* group is incomplete; MySQL/MariaDB sources may be unavailable."
+    $requiredVariables = Get-RequiredVariablesFromToml -TomlPath $resolvedConfigPath
+    $missingVariables = New-Object "System.Collections.Generic.List[string]"
+
+    foreach ($name in $requiredVariables) {
+        $currentValue = [Environment]::GetEnvironmentVariable($name, "Process")
+        if ([string]::IsNullOrWhiteSpace($currentValue)) {
+            $missingVariables.Add($name)
+        }
     }
 
-    Write-Info "Starting DBHub MCP over HTTP at http://localhost:5678/mcp"
+    if ($missingVariables.Count -gt 0) {
+        Write-ErrorLine "Missing required environment variables referenced by the selected config:"
+        foreach ($name in $missingVariables) {
+            Write-ErrorLine (" - " + $name)
+        }
+        exit 1
+    }
+
+    $profileText = if ([string]::IsNullOrWhiteSpace($Profile)) { "default" } else { $Profile }
+    $configDisplayPath = $resolvedConfigPath
+    $localhostEndpoint = "http://localhost:{0}/mcp" -f $Port
+    $selectedEndpoint = "http://{0}:{1}/mcp" -f $HostAddress, $Port
+
+    Write-Info ("DBHub profile: " + $profileText)
+    Write-Info ("Selected config: " + $configDisplayPath)
+    Write-Info ("Selected port: " + $Port)
+    Write-Info ("Expected endpoint: " + $localhostEndpoint)
+    if ($HostAddress -ne "localhost") {
+        Write-Info ("Selected host address endpoint: " + $selectedEndpoint)
+    }
+    if ($requiredVariables.Count -eq 0) {
+        Write-Info 'No ${VAR_NAME} placeholders found in selected config; variable validation skipped.'
+    }
+    Write-Info "HostAddress is used for endpoint guidance. DBHub host binding follows DBHub defaults."
     Write-Info "Keep this terminal open while using MCP clients. Press Ctrl+C to stop."
 
-    & npx -y @bytebase/dbhub@latest --transport http --port 5678 --config mcp/database/dbhub.local.toml
+    & npx -y @bytebase/dbhub@latest --transport http --port $Port --config $resolvedConfigPath
     exit $LASTEXITCODE
 }
 catch {

@@ -1,12 +1,18 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "_note": "Optional/future example. Verify exact OpenCode MCP remote schema/version before use.",
+  "_note": "Optional/future example for two HTTP MCP servers. Verify exact OpenCode MCP remote schema/version before use. Not tested in this starter.",
   "mcp": {
-    "dbhub": {
+    "dbhub_local": {
       "type": "remote",
       "url": "http://localhost:5678/mcp",
       "enabled": true,
-      "_requires": "Start scripts/start-dbhub-http.ps1 first"
+      "_requires": "Start scripts/start-dbhub-http.ps1 -Config mcp/database/dbhub.local.toml -Port 5678 first"
+    },
+    "dbhub_prod": {
+      "type": "remote",
+      "url": "http://localhost:5679/mcp",
+      "enabled": true,
+      "_requires": "Start scripts/start-dbhub-http.ps1 -Config mcp/database/dbhub.production-readonly.toml -Port 5679 first"
     }
   }
 }
