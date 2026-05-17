@@ -13,6 +13,27 @@ Supported usage:
 - MySQL/MariaDB local/development.
 - MySQL/MariaDB production read-only.
 
+## Tool Integration Standard
+
+- `AGENTS.md` is the universal source of agent behavior.
+- `docs/` contains detailed policies and setup guides.
+- `agents/database-mcp/` contains portable database MCP agent profiles.
+- `skills/database-safe-sql/` contains the portable safe SQL skill.
+- `.codex/` contains Codex configuration examples.
+- `.opencode/` contains OpenCode-active adapters (agents, skills, commands).
+- `templates/claude-*` contains future Claude adapter templates.
+- `scripts/` contains launchers and installer tooling.
+- `mcp/database/` contains DBHub configuration templates.
+
+## Recommended Install Strategy
+
+- Do not blindly overwrite existing project folders.
+- Use `scripts/install-kit.ps1` for controlled installation.
+- Installer behavior skips existing files by default.
+- Use `-Force` only when intentionally replacing existing files.
+- If a target project already has `agents/`, keep database MCP profiles under `agents/database-mcp/`.
+- If a target project already has `.opencode/`, merge carefully instead of replacing unrelated files.
+
 ## Universal Database MCP Validation Prompt
 
 Use this prompt in Codex, OpenCode, Claude, or another MCP-capable client:
@@ -180,7 +201,7 @@ OpenCode setup is optional/future in this starter.
 - The same DBHub HTTP endpoint can likely be reused once OpenCode MCP client configuration is in place.
 - This flow has not been validated in this repository environment yet.
 - DBHub HTTP must be running first.
-- See `templates/opencode.json.example` for a conservative example configuration.
+- See `opencode.json.example` and `templates/opencode.json.example` for conservative examples.
 
 ## Security Rules
 

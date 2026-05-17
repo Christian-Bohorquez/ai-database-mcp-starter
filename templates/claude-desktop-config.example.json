@@ -1,5 +1,5 @@
 {
-  "_note": "Future/verify-before-use example for Claude Desktop MCP setup. Confirm your Claude Desktop version supports HTTP MCP server URLs before enabling.",
+  "_note": "Future/verify-before-use example for Claude Desktop MCP setup. Not tested in this starter. Confirm your Claude Desktop version and MCP mode before enabling.",
   "mcpServers": {
     "dbhub_local": {
       "url": "http://localhost:5678/mcp",
@@ -7,7 +7,7 @@
     },
     "dbhub_prod": {
       "url": "http://localhost:5679/mcp",
-      "_requires": "Start scripts/start-dbhub-http.ps1 -Config mcp/database/dbhub.production-readonly.toml -Port 5679 first"
+      "_requires": "Optional production-readonly server. Verify compatibility first, then start scripts/start-dbhub-http.ps1 -Config mcp/database/dbhub.production-readonly.toml -Port 5679"
     }
   }
 }

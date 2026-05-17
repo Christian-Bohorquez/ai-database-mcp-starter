@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "_note": "Optional/future OpenCode example. dbhub_prod is optional and must remain read-only. Verify OpenCode MCP schema/version before use. Not tested in this starter.",
+  "_note": "Optional/future example for two HTTP MCP servers. Verify exact OpenCode MCP remote schema/version before use. Not tested in this starter.",
   "mcp": {
     "dbhub_local": {
       "type": "remote",
@@ -11,8 +11,8 @@
     "dbhub_prod": {
       "type": "remote",
       "url": "http://localhost:5679/mcp",
-      "enabled": false,
-      "_requires": "Optional production-readonly server. Start scripts/start-dbhub-http.ps1 -Config mcp/database/dbhub.production-readonly.toml -Port 5679 first and keep it read-only"
+      "enabled": true,
+      "_requires": "Start scripts/start-dbhub-http.ps1 -Config mcp/database/dbhub.production-readonly.toml -Port 5679 first"
     }
   }
 }

@@ -9,6 +9,8 @@ This guide explains how to reuse this MCP database structure across projects, en
 - Keep policy documents reusable and engine-agnostic.
 - Separate local write-capable configs from production read-only configs.
 - Keep official DBHub TOML structure (`[[sources]]` and `[[tools]]`) unchanged across projects.
+- Tool-specific behavior differs across Codex, OpenCode, and future Claude clients.
+- `AGENTS.md` is the neutral baseline for shared behavior and safety.
 
 ## Reuse in PostgreSQL Projects
 
@@ -37,9 +39,9 @@ This pattern is reusable in future projects by updating:
 
 ## Client Portability
 
-- Codex is the primary workflow for this starter.
-- OpenCode is optional/future and can reuse the same DBHub HTTP endpoint once configured.
-- Claude Desktop is a future client option and should be verified before production use.
+- Codex is the primary workflow for this starter and needs `.codex/` and/or global Codex MCP config.
+- OpenCode is secondary/additional and uses `.opencode/` adapters (agents, skills, commands).
+- Claude Desktop and Claude Skills are future options and must be verified before production use.
 
 ## Final Recommendation
 
